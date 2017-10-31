@@ -32,6 +32,14 @@ public class Point extends SpacialObject implements Comparable<SpacialObject> {
         }
     }
 
+    public boolean isBelow(Point other)
+    {
+        if(!(Math.abs(y-other.y)<.0000001))
+            return(y<other.y);
+        else
+            return(x>other.x);
+    }
+
     public double getX() {
         return x;
     }

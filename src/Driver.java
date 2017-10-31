@@ -14,6 +14,7 @@ public class Driver {
         double scale=kb.nextDouble();
 
         TriangleFinder tFinder=new TriangleFinder(filename);
+        tFinder.makeMonotone();
         ArrayList<LineSegment> lineList=tFinder.list;
         ArrayList<Point> pList=tFinder.pList;
 

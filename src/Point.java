@@ -1,6 +1,8 @@
 public class Point extends SpacialObject implements Comparable<SpacialObject> {
     protected double x;
     protected double y;
+    protected Edge start;
+    protected Edge end;
 
     public Point(double x, double y) {
         this.x = x;

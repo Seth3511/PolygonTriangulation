@@ -11,6 +11,7 @@ public class Edge
     protected Edge next;
     protected Edge prev;
     protected Cycle cycle;
+    protected Point helper;
 
     public Edge(String name,Point origin, String next,String twinS)
     {

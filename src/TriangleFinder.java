@@ -55,15 +55,20 @@ public class TriangleFinder {
 
         Edge head=new Edge(list.get(0));
         e1=head;
+        e1.line.p1.start=e1;
         for(int i=1;i<list.size()-1;i++)
         {
             e2=new Edge(list.get(i));
             e1.next=e2;
             e2.prev=e1;
+            e2.line.p1.end=e1;
+            e2.line.p1.start=e2;
             e1=e2;
         }
         head.prev=e1;
         e1.next=head;
+        head.line.p1.end=e1;
+        edgeList=new EdgeList(head);
     }
 
     public void makeMonotone()
@@ -99,6 +104,8 @@ public class TriangleFinder {
         boolean isLeftBelow=left.isBelow(p);
         boolean isRightBelow=right.isBelow(p);
         Double angle=findAngle(left,right,p);
+        if(!isRightTurn(left,p,right))
+            angle=(2*Math.PI)-angle;
 
         if(isLeftBelow&&isRightBelow&&angle<Math.PI)
             handleStartVertex(p);
@@ -123,8 +130,14 @@ public class TriangleFinder {
         return Math.acos((p1c*p1c+p0c*p0c-p0p1*p0p1)/(2*p1c*p0c));
     }
 
-    public void handleStartVertex(Point p){
+    public boolean isRightTurn(Point a, Point b, Point c){
+        double det=((b.getX()-a.getX())*(c.y-a.y))-((b.y-a.y)*(c.getX()-a.getX()));
+        return(det<0);
+    }
 
+    public void handleStartVertex(Point p){
+        tree.add(p.start.line);
+        p.start.helper=p;
     }
 
     public void handleEndVertex(Point p){
@@ -141,6 +154,33 @@ public class TriangleFinder {
 
     public void handleRegVertex(Point p){
 
+    }
+
+    public boolean isMergeVertex(Point p){
+        int index=pList.indexOf(p);
+        Point left=null;
+        Point right=null;
+
+        if(index==0) {
+            left = pList.get(pList.size() - 1);
+            right=pList.get(index+1);
+        }
+        else if(index==pList.size()-1){
+            left=pList.get(index-1);
+            right=pList.get(0);
+        }
+        else{
+            left=pList.get(index-1);
+            right=pList.get(index+1);
+        }
+
+        boolean isLeftBelow=left.isBelow(p);
+        boolean isRightBelow=right.isBelow(p);
+        Double angle=findAngle(left,right,p);
+        if(!isRightTurn(left,p,right))
+            angle=(2*Math.PI)-angle;
+
+        return (!isLeftBelow)&&(!isRightBelow)&&angle>Math.PI;
     }
 
     public void triangulate(){

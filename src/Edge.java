@@ -1,6 +1,4 @@
-import java.util.LinkedList;
-
-public class Edge
+public class Edge extends SpacialObject implements Comparable<SpacialObject>
 {
     protected LineSegment line;
     protected Point origin;
@@ -19,6 +17,8 @@ public class Edge
         this.origin=origin;
         this.nextS=next;
         this.twinS=twinS;
+        isEdge=true;
+        isLine=false;
     }
 
     public Edge(LineSegment s)
@@ -27,4 +27,15 @@ public class Edge
         origin=s.p1;
     }
 
+    public double getX(){
+        return line.getX();
+    }
+
+    public int compareTo(SpacialObject other){
+        return line.compareTo(other);
+    }
+
+    public boolean equals(Edge other){
+        return line.equals(other.line);
+    }
 }

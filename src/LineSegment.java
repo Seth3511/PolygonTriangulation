@@ -24,6 +24,7 @@ public class LineSegment extends SpacialObject implements Comparable<SpacialObje
         yInt = p1.y - slope * p1.x;
         xInt = p1.x - antislope * p1.y;
         isLine=true;
+        isEdge=false;
     }
 
     public boolean contains(Point p) {
@@ -62,7 +63,22 @@ public class LineSegment extends SpacialObject implements Comparable<SpacialObje
             return Double.compare(getX(), other.getX());
         }
 
-        else if(!other.isLine){
+        else if(other.isLine){
+            LineSegment o=(LineSegment) other;
+            if(!(Math.abs(slope)<.0000001)&&!(Math.abs(o.slope)<.0000001))
+                return Double.compare(xInt,o.xInt);
+            else if(Math.abs(slope)<.0000001)
+                return 1;
+            else
+                return -1;
+        }
+
+        else if(other.isEdge){
+            Edge o=(Edge) other;
+            return compareTo(o.line);
+        }
+
+        else{
             if(Math.abs(antislope)<.0000001)
                 return -1;
             else if(Math.abs(slope)<.0000001)
@@ -73,14 +89,7 @@ public class LineSegment extends SpacialObject implements Comparable<SpacialObje
                 return 1;
         }
 
-        else if(other.isLine){
-            LineSegment o=(LineSegment) other;
-            if(!(Math.abs(slope)<.0000001)&&!(Math.abs(o.slope)<.0000001))
-                return Double.compare(xInt,o.xInt);
-            else if(Math.abs(slope)<.0000001)
-                return 1;
-            else
-                return -1;
+
             /*if(antislope==0||o.antislope==0){
                 if(antislope==0){
                         return -1;
@@ -102,7 +111,7 @@ public class LineSegment extends SpacialObject implements Comparable<SpacialObje
 
             else if(slope!=0&&o.slope==0)
                 return -1;*/
-        }
+
         return 0;
     }
 }

@@ -10,13 +10,14 @@ public class Driver {
         Scanner kb=new Scanner(System.in);
         System.out.println("Enter input File:");
         String filename=kb.nextLine();
-        System.out.println("Enter Scale:");
-        double scale=kb.nextDouble();
 
         TriangleFinder tFinder=new TriangleFinder(filename);
         tFinder.makeMonotone();
-        ArrayList<LineSegment> lineList=tFinder.list;
+        ArrayList<LineSegment> lineList=tFinder.getLines();
         ArrayList<Point> pList=tFinder.pList;
+
+        System.out.println("Enter Scale:");
+        double scale=kb.nextDouble();
 
         JFrame f = new JFrame("LineSegmentCanvas");
         f.addWindowListener(new WindowAdapter() {

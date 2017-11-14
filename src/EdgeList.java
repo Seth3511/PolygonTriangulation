@@ -53,4 +53,70 @@ public class EdgeList {
 
         return ret;
     }
+
+    public void normalize(){
+        Edge diag,topPrev,topNext,bottomPrev,bottomNext,twin;
+        topPrev=null;
+        topNext=null;
+        bottomNext=null;
+        bottomPrev=null;
+        ArrayList<Edge> newEdges=new ArrayList<>();
+        ArrayList<Edge> newList=new ArrayList<>();
+        ArrayList<Edge> temp=new ArrayList<>();
+
+        for(int i=list.size()-1;i>0;i--){
+            newEdges.add(list.get(i));
+            list.remove(list.get(i));
+        }
+        ArrayList<Edge> oldEdges=toArray();
+        temp.addAll(newEdges);
+        temp.addAll(oldEdges);
+
+        for(int i=0;i<newEdges.size();i++){
+            diag=newEdges.get(i);
+            twin=new Edge(new LineSegment(diag.line.p2,diag.line.p1));
+            diag.twin=twin;
+            twin.twin=diag;
+
+            for(int j=0;j<oldEdges.size();j++){
+                if(oldEdges.get(j).line.p2.equals(diag.line.p2)){
+                    topPrev=oldEdges.get(j);
+                    topNext=topPrev.next;
+                }
+                if(oldEdges.get(j).line.p2.equals(diag.origin)){
+                    bottomPrev=oldEdges.get(j);
+                    bottomNext=bottomPrev.next;
+                }
+
+            }
+
+            topPrev.next=twin;
+            topNext.prev=diag;
+            diag.next=topNext;
+            twin.prev=topPrev;
+            bottomPrev.next=diag;
+            diag.prev=bottomPrev;
+            bottomNext.prev=twin;
+            twin.next=bottomNext;
+
+            temp.add(twin);
+        }
+        for(int i=0;i<temp.size();i++){
+            Edge e=temp.get(i);
+            if(e.cycle==null){
+                Cycle c=new Cycle(e);
+                e.cycle=c;
+                Edge p=e;
+                do{
+                    p=p.next;
+                    p.cycle=c;
+                }while(p!=e);
+
+                newList.add(e);
+            }
+        }
+
+        list=newList;
+        System.out.println(newList.size());
+    }
 }

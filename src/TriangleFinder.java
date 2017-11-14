@@ -13,6 +13,10 @@ public class TriangleFinder {
     protected ArrayList<Point> pList;
     private double xMax;
     private double yMax;
+    private double yMin;
+    private Point top;
+    private Point bottom;
+    private ArrayList<Point> leftSide;
 
     public TriangleFinder(String filename) throws IOException {
         queue = new PriorityQueue<>();
@@ -24,20 +28,34 @@ public class TriangleFinder {
         F.readLine();
         xMax = 0;
         yMax = 0;
+        yMin = Double.MAX_VALUE;
 
         while ((line = F.readLine()) != null) {
             String[] row = line.split(delimiter);
             double x = Double.parseDouble(row[0]);
             double y = Double.parseDouble(row[1]);
 
-            if (x > xMax)
-                xMax = x;
-            if (y > yMax)
-                yMax = y;
-
             Point p = new Point(x, y);
             queue.add(new Event(p));
             pList.add(p);
+
+            if (x > xMax)
+                xMax = x;
+            if (y >= yMax) {
+                yMax = y;
+                top=p;
+            }
+            if (y <= yMin) {
+                yMin = y;
+                bottom=p;
+            }
+        }
+
+        Point point=top;
+        leftSide=new ArrayList<>();
+        while(point!=pList.get(pList.indexOf(bottom)+1)){
+            leftSide.add(point);
+            point=pList.get(pList.indexOf(point)+1);
         }
 
         Point p1 = pList.get(0);
@@ -64,8 +82,10 @@ public class TriangleFinder {
 
         Edge p = head;
         p.line.p1.start = p;
+        p.helper = p.line.p1;
         Edge q = p.next;
         while (q != head) {
+            p.helper = p.line.p1;
             q.line.p1.end = p;
             q.line.p1.start = q;
             p = q;
@@ -85,6 +105,7 @@ public class TriangleFinder {
             restructure();
             handleVertex(p);
         }
+        edgeList.normalize();
     }
 
     public void restructure() {
@@ -159,8 +180,10 @@ public class TriangleFinder {
 
     public void handleSplitVertex(Point p) {
         Edge j = (Edge) tree.lower(p);
-        if (j != null && j.line.contains(p))
-            j = (Edge) tree.lower(j);
+        if (j != null)
+            while (j.line.contains(p))
+                j = (Edge) tree.lower(j);
+
         if (j != null) {
             edgeList.add(new LineSegment(p, j.helper));
             j.helper = p;
@@ -178,8 +201,10 @@ public class TriangleFinder {
         tree.remove(p.end);
 
         Edge j = (Edge) tree.lower(p);
-        if (j != null && j.line.contains(p))
-            j = (Edge) tree.lower(j);
+        if (j != null)
+            while (j.line.contains(p))
+                j = (Edge) tree.lower(j);
+
         if (j != null) {
             helper = j.helper;
             if (isMergeVertex(helper))
@@ -192,7 +217,7 @@ public class TriangleFinder {
         Point helper;
         Edge j;
 
-        if (pList.get(pList.indexOf(p) - 1).isBelow(p)) {
+        if (leftSide.contains(p)) {
             helper = p.end.helper;
             if (helper != null && isMergeVertex(helper))
                 edgeList.add(new LineSegment(p, helper));
@@ -201,8 +226,10 @@ public class TriangleFinder {
             p.start.helper = p;
         } else {
             j = (Edge) tree.lower(p);
-            if (j != null && j.line.contains(p))
-                j = (Edge) tree.lower(j);
+            if (j != null)
+                while (j.line.contains(p))
+                    j = (Edge) tree.lower(j);
+
             if (j != null) {
                 helper = j.helper;
                 if (isMergeVertex(helper))
@@ -234,7 +261,7 @@ public class TriangleFinder {
         if (isRightTurn(left, p, right))
             angle = (2 * Math.PI) - angle;
 
-        return (!isLeftBelow) && (!isRightBelow) && angle > Math.PI;
+        return((!isLeftBelow) && (!isRightBelow) && (angle > Math.PI));
     }
 
     public void triangulate() {

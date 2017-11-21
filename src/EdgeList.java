@@ -62,7 +62,9 @@ public class EdgeList {
         bottomPrev=null;
         ArrayList<Edge> newEdges=new ArrayList<>();
         ArrayList<Edge> newList=new ArrayList<>();
-        ArrayList<Edge> temp=new ArrayList<>();
+        ArrayList<Edge> temp;
+
+        temp=new ArrayList<>();;
 
         for(int i=list.size()-1;i>0;i--){
             newEdges.add(list.get(i));
@@ -117,6 +119,5 @@ public class EdgeList {
         }
 
         list=newList;
-        System.out.println(newList.size());
     }
 }

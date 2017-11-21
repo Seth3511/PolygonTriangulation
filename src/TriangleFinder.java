@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.PriorityQueue;
 import java.util.TreeSet;
+import java.util.Stack;
 
 public class TriangleFinder {
     private EdgeList edgeList;
@@ -43,19 +44,19 @@ public class TriangleFinder {
                 xMax = x;
             if (y >= yMax) {
                 yMax = y;
-                top=p;
+                top = p;
             }
             if (y <= yMin) {
                 yMin = y;
-                bottom=p;
+                bottom = p;
             }
         }
 
-        Point point=top;
-        leftSide=new ArrayList<>();
-        while(point!=pList.get(pList.indexOf(bottom)+1)){
+        Point point = top;
+        leftSide = new ArrayList<>();
+        while (point != pList.get(pList.indexOf(bottom) + 1)) {
             leftSide.add(point);
-            point=pList.get(pList.indexOf(point)+1);
+            point = pList.get(pList.indexOf(point) + 1);
         }
 
         Point p1 = pList.get(0);
@@ -261,11 +262,151 @@ public class TriangleFinder {
         if (isRightTurn(left, p, right))
             angle = (2 * Math.PI) - angle;
 
-        return((!isLeftBelow) && (!isRightBelow) && (angle > Math.PI));
+        return ((!isLeftBelow) && (!isRightBelow) && (angle > Math.PI));
     }
 
     public void triangulate() {
+        ArrayList<Edge> eList = edgeList.list;
+        ArrayList<Edge> diags = new ArrayList<>();
 
+        for (int i = 0; i < eList.size(); i++){
+            Edge e=eList.get(i);
+            if(e!=null)
+                diags.addAll(triangulatePiece(e));
+        }
+
+        eList.addAll(diags);
+    }
+
+    public ArrayList<Edge> triangulatePiece(Edge e) {
+        ArrayList<Edge> diags=new ArrayList<>();
+        ArrayList<Point> leftChain = new ArrayList<>();
+        ArrayList<Point> rightChain = new ArrayList<>();
+        ArrayList<Point> fullChain = new ArrayList<>();
+        Stack<Point> S = new Stack<>();
+        Edge top = e;
+        Edge bottom = e;
+
+        Edge p = e;
+        do {
+            if ((p.origin.y > top.origin.y) || (p.origin.y == top.origin.y && p.origin.x < top.origin.x))
+                top = p;
+            if ((p.origin.y < bottom.origin.y) || (p.origin.y == bottom.origin.y && p.origin.x > bottom.origin.x))
+                bottom = p;
+
+            p = p.next;
+        } while (p != e);
+
+        p = top;
+        do {
+            leftChain.add(p.origin);
+            p = p.next;
+        } while (p != bottom);
+
+        p = top;
+        do {
+            rightChain.add(p.origin);
+            p = p.prev;
+        } while (p != bottom);
+
+        int i = 1;
+        int j = 1;
+        Point left = null;
+        Point right = null;
+
+
+        fullChain.add(top.origin);
+        while (fullChain.size() < leftChain.size() + rightChain.size()) {
+            if (i < leftChain.size())
+                left = leftChain.get(i);
+            else {
+                while (j < rightChain.size()) {
+                    fullChain.add(rightChain.get(j));
+                    j++;
+                }
+                break;
+            }
+
+            if (j < rightChain.size())
+                right = rightChain.get(j);
+            else {
+                while (i < leftChain.size()) {
+                    fullChain.add(leftChain.get(i));
+                    i++;
+                }
+                break;
+            }
+
+            if (left.y > right.y || (left.y == right.y && left.x < right.x)) {
+                while (left.y > right.y || (left.y == right.y && left.x < right.x)) {
+                    fullChain.add(left);
+                    i++;
+
+                    if (i < leftChain.size())
+                        left = leftChain.get(i);
+                    else
+                        break;
+                }
+            } else {
+                while (left.y < right.y || (left.y == right.y && left.x > right.x)) {
+                    fullChain.add(right);
+                    j++;
+
+                    if (j < rightChain.size())
+                        right = rightChain.get(j);
+                    else
+                        break;
+                }
+            }
+        }
+        fullChain.add(bottom.origin);
+        leftChain.add(bottom.origin);
+        rightChain.add(bottom.origin);
+
+        S.push(fullChain.get(0));
+        S.push(fullChain.get(1));
+        Point v;
+
+        for (i = 2; i < fullChain.size() - 1; i++) {
+            Point uj = fullChain.get(i);
+            if ((leftChain.contains(uj) && rightChain.contains(S.peek())) || (rightChain.contains(uj) && leftChain.contains(S.peek()))) {
+                while (S.size() > 1) {
+                    v = S.pop();
+                    diags.add(new Edge(new LineSegment(uj, v)));
+                }
+                S.push(fullChain.get(i - 1));
+                S.push(uj);
+            } else {
+                v = S.pop();
+
+                while (S.size() > 0)
+                    if (leftChain.contains(uj)) {
+                        if (isRightTurn(uj, v, S.peek())) {
+                            v = S.pop();
+                            diags.add(new Edge(new LineSegment(uj, v)));
+                        } else {
+                            S.push(v);
+                            S.push(uj);
+                            break;
+                        }
+                    } else {
+                        if (!isRightTurn(uj, v, S.peek())) {
+                            v = S.pop();
+                            diags.add(new Edge(new LineSegment(uj, v)));
+                        } else {
+                            S.push(v);
+                            S.push(uj);
+                            break;
+                        }
+                    }
+            }
+        }
+        v = fullChain.get(fullChain.size() - 1);
+        S.pop();
+        while (S.size() > 1)
+            diags.add(new Edge(new LineSegment(v, S.pop())));
+
+        return diags;
     }
 
     public ArrayList<LineSegment> getLines() {

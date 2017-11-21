@@ -13,6 +13,7 @@ public class Driver {
 
         TriangleFinder tFinder=new TriangleFinder(filename);
         tFinder.makeMonotone();
+        tFinder.triangulate();
         ArrayList<LineSegment> lineList=tFinder.getLines();
         ArrayList<Point> pList=tFinder.pList;
 
